@@ -28,39 +28,13 @@ npm run android
 Kiến trúc ứng dụng tuân thủ mô hình phân lớp rõ ràng: **Màn hình $\rightarrow$ Hook $\rightarrow$ Service $\rightarrow$ Cache / Outbox $\rightarrow$ API**.
 
 ```mermaid
-flowchart TD
-    subgraph UI_Layer [Tầng Giao Diện]
-        Screen[Màn hình / Screens]
-        Component[Components]
-        Screen --> Component
-    end
-
-    subgraph State_Layer [Tầng Logic & Trạng Thái]
-        Hook[Custom Hooks: useCachedQuery, useOutboxSync, useNetworkStatus]
-        Context[AppContext: SyncContext, AppDataContext]
-        Screen <--> Hook
-        Screen <--> Context
-    end
-
-    subgraph Service_Layer [Tầng Dịch Vụ]
-        Service[API Services: student, course, session, assignment, grade]
-        Client[API Client: Fetch timeout 10s]
-        Hook --> Service
-        Service --> Client
-    end
-
-    subgraph Storage_Layer [Tầng Lưu Trữ Cục Bộ (Offline)]
-        Cache[(AsyncStorage Cache - TTL 5 phút)]
-        Outbox[(Hàng đợi Outbox Queue)]
-        Hook <--> Cache
-        Context <--> Outbox
-    end
-
-    subgraph Server_Layer [Tầng Máy Chủ]
-        API[(REST API Server - json-server :3000)]
-        Client <--> API
-        Outbox -- "Tự động đồng bộ khi Online" --> Service
-    end
+flowchart LR
+    Screen["Màn hình (Screens)"] --> Hook["Custom Hooks & Context"]
+    Hook --> Service["API Services"]
+    Hook <--> Cache[("Cache (AsyncStorage)")]
+    Hook --> Outbox[("Outbox Queue")]
+    Service <--> API[("REST API (json-server)")]
+    Outbox -->|"Đồng bộ khi có mạng"| Service
 ```
 
 ### Chi tiết 2 luồng xử lý chính:
